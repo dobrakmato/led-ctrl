@@ -1,7 +1,7 @@
 FROM rust:latest AS builder
 
-RUN rustup target add x86_64-unknown-linux-musl
-RUN apt update && apt install -y musl-tools musl-dev
+RUN rustup target add aarch64-unknown-linux-musl
+RUN apt update && apt install -y musl-tools musl-dev gcc-aarch64-linux-gnu
 RUN update-ca-certificates
 
 # Create appuser
@@ -22,7 +22,7 @@ WORKDIR /led_ctrl
 
 COPY ./ .
 
-RUN cargo build --target x86_64-unknown-linux-musl --release
+RUN cargo build --target aarch64-unknown-linux-musl --release
 
 FROM scratch
 
@@ -33,7 +33,8 @@ COPY --from=builder /etc/group /etc/group
 WORKDIR /led_ctrl
 
 # Copy our build
-COPY --from=builder /led_ctrl/target/x86_64-unknown-linux-musl/release/led_ctrl ./
+COPY --from=builder /led_ctrl/target/aarch64-unknown-linux-musl/release/led_ctrl ./
+ENV PATH="${PATH}:/led_ctrl"
 
 # Use an unprivileged user.
 USER led_ctrl:led_ctrl
