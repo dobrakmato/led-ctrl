@@ -54,7 +54,7 @@ async fn main() {
 }
 
 async fn read_serial_link(mut file: ReadHalf<File>) {
-    let mut buf = [0u8; 16];
+    let mut buf = [0u8; 4];
 
     // read bytes and throw them away
     loop {
@@ -108,7 +108,7 @@ macro_rules! cmd {
     ($name: ident, $serial_cmd: expr) => {
         async fn $name(State(file): State<AppState>) -> StatusCode {
             let mut file = file.lock().await;
-            match file.write_all(concat!($serial_cmd, "\r\n").as_bytes()).await {
+            match file.write_all($serial_cmd.as_bytes()).await {
                 Ok(_) => StatusCode::OK,
                 Err(e) => {
                     error!("Cannot write {} command to device! {:?}", $serial_cmd, e);
