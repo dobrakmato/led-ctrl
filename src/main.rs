@@ -1,15 +1,15 @@
-use std::fs::File as StdFile;
 use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
 use std::sync::Arc;
+use std::time::Duration;
 use axum::{Router, routing::post};
 use axum::extract::State;
 use axum::http::{StatusCode};
 use clap::Parser;
-use tokio::fs::File;
-use tokio::io::{AsyncReadExt, AsyncWriteExt, ReadHalf, WriteHalf};
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::spawn;
 use tokio::sync::Mutex;
+use tokio_serial::{SerialPortBuilderExt, SerialStream};
 use tracing::{debug, error, info};
 
 /// Daemon to expose LED controller via HTTP API.
@@ -36,38 +36,42 @@ async fn main() {
     info!("Starting LED CTRL daemon...");
 
     let args = Args::parse();
-    let file = match StdFile::options().read(true).write(true).open(args.device) {
+    let port = match tokio_serial::new(&args.device, 38400).open_native_async() {
         Ok(t) => t,
         Err(e) => {
-            error!("Cannot open specified device! {:?}", e);
+            error!("Cannot open serial device {}!{:?}", args.device, e);
             return;
         }
     };
-    let file = File::from_std(file);
+    let port = Arc::new(Mutex::new(port));
 
     // split serial port communication into rx and tx
-    let (stream, sink) = tokio::io::split(file);
-    spawn(read_serial_link(stream));
+    spawn(read_serial_link(port.clone()));
 
     info!("Starting HTTP listener on {}:{}...", args.hostname, args.port);
-    create_http_server(sink, &args.hostname, args.port).await;
+    create_http_server(port, &args.hostname, args.port).await;
 }
 
-async fn read_serial_link(mut file: ReadHalf<File>) {
-    let mut buf = [0u8; 4];
+async fn read_serial_link(file: Arc<Mutex<SerialStream>>) {
+    debug!("Reading serial link...");
+    let mut buf = [0u8; 32];
 
     // read bytes and throw them away
     loop {
-        match file.read(&mut buf).await {
-            Ok(t) => debug!("Read from serial: {}", String::from_utf8_lossy(&buf.as_slice()[0 .. t])),
-            Err(e) => error!("Error while reading serial link! {:?}", e),
+        {
+            let mut file = file.lock().await;
+            match file.read(&mut buf).await {
+                Ok(t) => debug!("Read from serial: {}", String::from_utf8_lossy(&buf.as_slice()[0 .. t])),
+                Err(e) => error!("Error while reading serial link! {:?}", e),
+            }
         }
+        tokio::time::sleep(Duration::from_millis(10)).await;
     }
 }
 
-type AppState = Arc<Mutex<WriteHalf<File>>>;
+type AppState = Arc<Mutex<SerialStream>>;
 
-async fn create_http_server(file: WriteHalf<File>, hostname: &str, port: u16) {
+async fn create_http_server(file: AppState, hostname: &str, port: u16) {
     let ip_addr = match IpAddr::from_str(hostname) {
         Ok(t) => t,
         Err(e) => {
@@ -75,7 +79,6 @@ async fn create_http_server(file: WriteHalf<File>, hostname: &str, port: u16) {
             return;
         }
     };
-    let file = Arc::new(Mutex::new(file));
     let socket_addr = SocketAddr::from((ip_addr, port));
     let app = Router::new()
         // managed commands
