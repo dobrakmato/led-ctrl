@@ -4,13 +4,13 @@ use std::str::FromStr;
 use std::sync::Arc;
 use axum::{Router, routing::post};
 use axum::extract::State;
-use axum::http::StatusCode;
+use axum::http::{StatusCode};
 use clap::Parser;
 use tokio::fs::File;
 use tokio::io::{AsyncReadExt, AsyncWriteExt, ReadHalf, WriteHalf};
 use tokio::spawn;
 use tokio::sync::Mutex;
-use tracing::{error, info};
+use tracing::{debug, error, info};
 
 /// Daemon to expose LED controller via HTTP API.
 #[derive(Parser, Debug)]
@@ -21,7 +21,7 @@ struct Args {
     device: String,
 
     /// Hostname (IP address) to bind the HTTP listener to
-    #[arg(short, long, default_value = "0.0.0.0")]
+    #[arg(long, default_value = "0.0.0.0")]
     hostname: String,
 
     /// Port to bind HTTP listener to
@@ -36,7 +36,7 @@ async fn main() {
     info!("Starting LED CTRL daemon...");
 
     let args = Args::parse();
-    let file = match StdFile::open(args.device) {
+    let file = match StdFile::options().read(true).write(true).open(args.device) {
         Ok(t) => t,
         Err(e) => {
             error!("Cannot open specified device! {:?}", e);
@@ -58,8 +58,9 @@ async fn read_serial_link(mut file: ReadHalf<File>) {
 
     // read bytes and throw them away
     loop {
-        if let Err(e) = file.read(&mut buf).await {
-            error!("Error while reading serial link! {:?}", e);
+        match file.read(&mut buf).await {
+            Ok(t) => debug!("Read from serial: {}", String::from_utf8_lossy(&buf.as_slice()[0 .. t])),
+            Err(e) => error!("Error while reading serial link! {:?}", e),
         }
     }
 }
