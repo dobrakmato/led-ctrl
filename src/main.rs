@@ -118,25 +118,26 @@ macro_rules! cmd {
                     StatusCode::INTERNAL_SERVER_ERROR
                 }
             }
+            file.flush().await;
         }
     };
 }
 
-cmd!(turn_on, "LED_ON");
-cmd!(turn_off, "LED_OFF");
-cmd!(intensity_plus, "LED_IP");
-cmd!(intensity_minus, "LED_IM");
-cmd!(white, "LED_WHITE");
-cmd!(red, "LED_RED");
-cmd!(green, "LED_GREEN");
-cmd!(blue, "LED_BLUE");
+cmd!(turn_on, "LED_ON\r");
+cmd!(turn_off, "LED_OFF\r");
+cmd!(intensity_plus, "LED_IP\r");
+cmd!(intensity_minus, "LED_IM\r");
+cmd!(white, "LED_WHITE\r");
+cmd!(red, "LED_RED\r");
+cmd!(green, "LED_GREEN\r");
+cmd!(blue, "LED_BLUE\r");
 
 // raw commands
-cmd!(uturn_on, "ULED_ON");
-cmd!(uturn_off, "ULED_OFF");
-cmd!(uintensity_plus, "ULED_IP");
-cmd!(uintensity_minus, "ULED_IM");
-cmd!(uwhite, "ULED_WHITE");
-cmd!(ured, "ULED_RED");
-cmd!(ugreen, "ULED_GREEN");
-cmd!(ublue, "ULED_BLUE");
+cmd!(uturn_on, "ULED_ON\r");
+cmd!(uturn_off, "ULED_OFF\r");
+cmd!(uintensity_plus, "ULED_IP\r");
+cmd!(uintensity_minus, "ULED_IM\r");
+cmd!(uwhite, "ULED_WHITE\r");
+cmd!(ured, "ULED_RED\r");
+cmd!(ugreen, "ULED_GREEN\r");
+cmd!(ublue, "ULED_BLUE\r");
