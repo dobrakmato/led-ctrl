@@ -115,10 +115,11 @@ macro_rules! cmd {
                 Ok(_) => StatusCode::OK,
                 Err(e) => {
                     error!("Cannot write {} command to device! {:?}", $serial_cmd, e);
-                    StatusCode::INTERNAL_SERVER_ERROR
+                    return StatusCode::INTERNAL_SERVER_ERROR;
                 }
-            }
-            file.flush().await;
+            };
+            file.flush().await.expect("cannot flush serial port");
+            return StatusCode::OK;
         }
     };
 }
