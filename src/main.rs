@@ -124,21 +124,21 @@ macro_rules! cmd {
     };
 }
 
-cmd!(turn_on, "LED_ON\r");
-cmd!(turn_off, "LED_OFF\r");
-cmd!(intensity_plus, "LED_IP\r");
-cmd!(intensity_minus, "LED_IM\r");
-cmd!(white, "LED_WHITE\r");
-cmd!(red, "LED_RED\r");
-cmd!(green, "LED_GREEN\r");
-cmd!(blue, "LED_BLUE\r");
+cmd!(turn_on, "LED_ON\n");
+cmd!(turn_off, "LED_OFF\n");
+cmd!(intensity_plus, "LED_IP\n");
+cmd!(intensity_minus, "LED_IM\n");
+cmd!(white, "LED_WHITE\n");
+cmd!(red, "LED_RED\n");
+cmd!(green, "LED_GREEN\n");
+cmd!(blue, "LED_BLUE\n");
 
 // raw commands
-cmd!(uturn_on, "ULED_ON\r");
-cmd!(uturn_off, "ULED_OFF\r");
-cmd!(uintensity_plus, "ULED_IP\r");
-cmd!(uintensity_minus, "ULED_IM\r");
-cmd!(uwhite, "ULED_WHITE\r");
-cmd!(ured, "ULED_RED\r");
-cmd!(ugreen, "ULED_GREEN\r");
-cmd!(ublue, "ULED_BLUE\r");
+cmd!(uturn_on, "ULED_ON\n");
+cmd!(uturn_off, "ULED_OFF\n");
+cmd!(uintensity_plus, "ULED_IP\n");
+cmd!(uintensity_minus, "ULED_IM\n");
+cmd!(uwhite, "ULED_WHITE\n");
+cmd!(ured, "ULED_RED\n");
+cmd!(ugreen, "ULED_GREEN\n");
+cmd!(ublue, "ULED_BLUE\n");
